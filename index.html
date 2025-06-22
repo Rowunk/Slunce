@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slunce - Solar Calculator</title>
+  <meta name="description" content="Precision solar timing calculator for sunrise, sunset, and twilight phases">
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- favicon & icons -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
+
+  <meta name="theme-color" content="#ff6b35">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ───────────── Header ───────────── -->
+  <header>
+    <div class="header-content">
+      <div class="title-section">
+        <h1>🌅 Slunce</h1>
+        <p data-i18n="subtitle">Solar timing calculator</p>
+      </div>
+
+      <div class="header-controls">
+        <button id="install-btn" class="install-btn hidden" data-i18n-title="installApp">
+          📱 <span data-i18n="install">Install</span>
+        </button>
+
+        <div class="language-switcher">
+          <button id="lang-en" class="lang-btn">EN</button>
+          <button id="lang-cs" class="lang-btn">CS</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ───────────── Main grid ───────────── -->
+  <main>
+    <section id="results" class="results">
+      <!-- Day-length banner (grid-col 1 / span 2) -->
+      <div class="day-length">
+        <div class="event-label" data-i18n="dayLength">Day Length</div>
+        <div class="event-time" id="day-length">--:--</div>
+      </div>
+
+      <!-- Settings banner (grid-col 3 / span 2) -->
+      <div class="settings-banner">
+        <!-- Location -->
+        <section class="input-section">
+          <h2 data-i18n="location">Location</h2>
+          <button id="get-location" data-i18n="useCurrentLocation">📍 Use Current Location</button>
+          <div class="manual-input">
+            <input id="latitude"  type="number" step="0.0001" placeholder="Latitude"  data-i18n="latitude">
+            <input id="longitude" type="number" step="0.0001" placeholder="Longitude" data-i18n="longitude">
+          </div>
+        </section>
+
+        <!-- Date -->
+        <section class="input-section">
+          <h2 data-i18n="date">Date</h2>
+          <input id="date-picker" type="date">
+        </section>
+      </div>
+
+      <!-- ───────── Main Sun Events ───────── -->
+      <div class="event-group main">
+        <h3>☀️ <span data-i18n="sunTimes">Sun Times</span></h3>
+
+        <div class="event-line highlight">
+          <div class="event-pair">
+            <div class="event-item">
+              <span class="event-label" data-i18n="sunrise">Sunrise:</span>
+              <span class="event-time" id="sunrise">--:--</span>
+            </div>
+            <div class="event-item">
+              <span class="event-label" data-i18n="sunset">Sunset:</span>
+              <span class="event-time" id="sunset">--:--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="event-line">
+          <div class="event-pair">
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="riseAzimuth">Rise Azimuth:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipRiseAzimuth">The compass direction (0°=North, 90°=East) where the sun rises.</div>
+              </span>
+              <span class="event-time" id="az-sunrise">--</span>
+            </div>
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="setAzimuth">Set Azimuth:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipSetAzimuth">The compass direction (0°=North, 270°=West) where the sun sets.</div>
+              </span>
+              <span class="event-time" id="az-sunset">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="event-line">
+          <div class="event-pair">
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="solarNoon">Solar Noon:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipSolarNoon">The exact moment when the sun reaches its highest point in the sky for your location.</div>
+              </span>
+              <span class="event-time" id="solar-noon">--:--</span>
+            </div>
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="solarMidnight">Solar Midnight:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipSolarMidnight">The moment when the sun is at its lowest point, exactly opposite to solar noon.</div>
+              </span>
+              <span class="event-time" id="solar-midnight">--:--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="altitude">Solar Noon Altitude:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipAltitude">How high the sun appears above the horizon at solar noon, measured in degrees.</div>
+          </span>
+          <span class="event-time" id="solar-alt">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="equationTime">Equation of Time:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipEquationTime">The difference between solar time and clock time, caused by Earth's elliptical orbit.</div>
+          </span>
+          <span class="event-time" id="eot">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="solarDeclination">Solar Declination:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipSolarDeclination">The angle between the sun and Earth's equator. Changes throughout the year as seasons progress.</div>
+          </span>
+          <span class="event-time" id="solar-declination">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="sunDistance">Sun Distance:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipSunDistance">Current distance from Earth to the Sun. Varies by about 3% throughout the year.</div>
+          </span>
+          <span class="event-time" id="sun-distance">--</span>
+        </div>
+      </div>
+
+      <!-- ───────── Twilight ───────── -->
+      <div class="event-group">
+        <h3>🌌 <span data-i18n="twilight">Twilight</span></h3>
+
+        <div class="event-line">
+          <div class="event-pair">
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="civilDawn">Civil Dawn:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipCivilDawn">When the sun is 6° below horizon. Enough light for most outdoor activities without artificial lighting.</div>
+              </span>
+              <span class="event-time" id="civil-dawn">--:--</span>
+            </div>
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="civilDusk">Civil Dusk:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipCivilDusk">When the sun drops 6° below horizon. End of useful daylight for most activities.</div>
+              </span>
+              <span class="event-time" id="civil-dusk">--:--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="event-line">
+          <div class="event-pair">
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="nauticalDawn">Nautical Dawn:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipNauticalDawn">When the sun is 12° below horizon. Horizon becomes visible at sea for navigation.</div>
+              </span>
+              <span class="event-time" id="nautical-dawn">--:--</span>
+            </div>
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="nauticalDusk">Nautical Dusk:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipNauticalDusk">When the sun drops 12° below horizon. Horizon disappears from view at sea.</div>
+              </span>
+              <span class="event-time" id="nautical-dusk">--:--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="event-line">
+          <div class="event-pair">
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="astronomicalDawn">Astro Dawn:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipAstronomicalDawn">When the sun is 18° below horizon. The sky begins to lighten from true astronomical night.</div>
+              </span>
+              <span class="event-time" id="astronomical-dawn">--:--</span>
+            </div>
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="astronomicalDusk">Astro Dusk:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipAstronomicalDusk">When the sun drops 18° below horizon. True astronomical darkness begins.</div>
+              </span>
+              <span class="event-time" id="astronomical-dusk">--:--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="civilDuration">Civil Duration:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipCivilDuration">Total length of civil twilight period (morning + evening).</div>
+          </span>
+          <span class="event-time" id="civil-duration">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="nauticalDuration">Nautical Duration:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipNauticalDuration">Total length of nautical twilight period (morning + evening).</div>
+          </span>
+          <span class="event-time" id="nautical-duration">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="astroDuration">Astro Duration:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipAstroDuration">Total length of astronomical twilight period (morning + evening).</div>
+          </span>
+          <span class="event-time" id="astro-duration">--</span>
+        </div>
+      </div>
+
+      <!-- ───────── Photography ───────── -->
+      <div class="event-group photography">
+        <h3>📸 <span data-i18n="photography">Photography</span></h3>
+
+        <div class="event-line">
+          <div class="event-pair">
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="goldenStart">Golden Start:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipGoldenStart">When the sun drops to 6° above horizon, creating warm, soft lighting ideal for photography.</div>
+              </span>
+              <span class="event-time golden" id="golden-hour-start">--:--</span>
+            </div>
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="goldenEnd">Golden End:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipGoldenEnd">When the sun rises to 6° above horizon, ending the warm morning light period.</div>
+              </span>
+              <span class="event-time golden" id="golden-hour-end">--:--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="goldenDuration">Golden Duration:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipGoldenDuration">Length of golden hour in morning and evening (when sun is below 6° elevation).</div>
+          </span>
+          <span class="event-time golden" id="gold-dur">--</span>
+        </div>
+
+        <div class="event-line">
+          <div class="event-pair">
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="blueStart">Blue Start:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipBlueStart">When the sun drops 2° below horizon, beginning the blue hour's even, diffused lighting.</div>
+              </span>
+              <span class="event-time blue" id="blue-hour-start">--:--</span>
+            </div>
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="blueDuration">Blue Duration:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipBlueDuration">Length of blue hour (from 2° below horizon until civil twilight ends).</div>
+              </span>
+              <span class="event-time blue" id="blue-dur">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="lightQuality">Light Quality:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipLightQuality">Describes the harshness and color temperature of current sunlight based on solar elevation.</div>
+          </span>
+          <span class="event-time" id="light-quality">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="goldenElevation">Golden Elevation:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipGoldenElevation">The sun's elevation angle during the middle of golden hour period.</div>
+          </span>
+          <span class="event-time golden" id="golden-elevation">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="portraitTime">Portrait Time:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipPortraitTime">Optimal time for portrait photography when lighting is most flattering.</div>
+          </span>
+          <span class="event-time" id="portrait-time">--:--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="landscapeTime">Landscape Time:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipLandscapeTime">Optimal time for landscape photography when lighting and sky colors are most dramatic.</div>
+          </span>
+          <span class="event-time" id="landscape-time">--:--</span>
+        </div>
+      </div>
+
+      <!-- ───────── Changes & Seasonal Info ───────── -->
+      <div class="event-group changes">
+        <h3>📈 <span data-i18n="changesTrends">Changes & Trends</span></h3>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="dayLengthDelta">Day Length Change:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipDayLengthDelta">How much longer or shorter today is compared to yesterday.</div>
+          </span>
+          <span class="event-time" id="delta-day">--</span>
+        </div>
+
+        <div class="event-line">
+          <div class="event-pair">
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="sunriseDelta">Sunrise Change:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipSunriseDelta">How much earlier or later sunrise occurs today compared to yesterday.</div>
+              </span>
+              <span class="event-time" id="delta-rise">--</span>
+            </div>
+            <div class="event-item">
+              <span class="info-tooltip">
+                <span class="event-label" data-i18n="sunsetDelta">Sunset Change:</span>
+                <span class="info-icon">i</span>
+                <div class="tooltip-content" data-i18n="tooltipSunsetDelta">How much earlier or later sunset occurs today compared to yesterday.</div>
+              </span>
+              <span class="event-time" id="delta-set">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="weeklyDelta">Weekly Change:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipWeeklyDelta">How much longer or shorter today is compared to the same day last week.</div>
+          </span>
+          <span class="event-time" id="weekly-delta">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="seasonProgress">Season Progress:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipSeasonProgress">Progress through the current season (from one solstice/equinox to the next).</div>
+          </span>
+          <span class="event-time" id="season-progress">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="daysToSolstice">Days to Solstice:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipDaysToSolstice">Number of days until the next solstice (longest or shortest day of the year).</div>
+          </span>
+          <span class="event-time" id="days-to-solstice">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="daylightTrend">Daylight Trend:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipDaylightTrend">Whether days are currently getting longer, shorter, or staying the same length.</div>
+          </span>
+          <span class="event-time" id="daylight-trend">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="peakChange">Peak Change:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipPeakChange">The date when daylight hours change most rapidly during the year.</div>
+          </span>
+          <span class="event-time" id="peak-change">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="solarIntensity">Solar Intensity:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipSolarIntensity">The amount of solar energy reaching Earth's atmosphere at this distance from the sun.</div>
+          </span>
+          <span class="event-time" id="solar-intensity">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="shadowLength">Shadow Length:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipShadowLength">How long shadows are at solar noon relative to object height (e.g., 2× means shadows are twice as long as the object).</div>
+          </span>
+          <span class="event-time" id="shadow-length">--</span>
+        </div>
+
+        <div class="single-line">
+          <span class="info-tooltip">
+            <span class="event-label" data-i18n="trueSolarTime">True Solar Time:</span>
+            <span class="info-icon">i</span>
+            <div class="tooltip-content" data-i18n="tooltipTrueSolarTime">The actual time based on the sun's position, accounting for your longitude and equation of time.</div>
+          </span>
+          <span class="event-time" id="true-solar-time">--:--</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ───────── PWA Install Modal ───────── -->
+  <div id="install-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="installGuideTitle">Install Slunce</h3>
+        <button id="close-modal" class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p data-i18n="installGuideIntro">Add Slunce to your home screen for easy access:</p>
+
+        <div class="install-instructions">
+          <div class="instruction-group">
+            <h4>Chrome / Edge / Samsung Internet</h4>
+            <ol>
+              <li data-i18n="chromeStep1">Tap the menu (⋮) in the top-right corner</li>
+              <li data-i18n="chromeStep2">Select "Add to Home screen" or "Install app"</li>
+              <li data-i18n="chromeStep3">Tap "Add" to confirm</li>
+            </ol>
+          </div>
+
+          <div class="instruction-group">
+            <h4>Safari (iOS)</h4>
+            <ol>
+              <li data-i18n="safariStep1">Tap the Share button (□↗) at the bottom</li>
+              <li data-i18n="safariStep2">Scroll down and tap "Add to Home Screen"</li>
+              <li data-i18n="safariStep3">Tap "Add" to confirm</li>
+            </ol>
+          </div>
+
+          <div class="instruction-group">
+            <h4>Firefox</h4>
+            <ol>
+              <li data-i18n="firefoxStep1">Tap the menu (⋮) in the top-right corner</li>
+              <li data-i18n="firefoxStep2">Select "Install" or "Add to Home screen"</li>
+              <li data-i18n="firefoxStep3">Tap "Add" to confirm</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="install-benefits">
+          <h4 data-i18n="installBenefitsTitle">Benefits of Installing:</h4>
+          <ul>
+            <li data-i18n="benefit1">✨ Works offline</li>
+            <li data-i18n="benefit2">🚀 Faster loading</li>
+            <li data-i18n="benefit3">📱 Native app experience</li>
+            <li data-i18n="benefit4">🔔 No browser clutter</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── Update Notification ───────── -->
+  <div id="update-notification" class="notification hidden">
+    <div class="notification-content">
+      <span data-i18n="updateAvailable">New version available!</span>
+      <button id="update-btn" class="update-btn" data-i18n="updateNow">Update Now</button>
+      <button id="dismiss-update" class="dismiss-btn" aria-label="Dismiss">&times;</button>
+    </div>
+  </div>
+
+  <!-- ───────── Install Success Toast ───────── -->
+  <div id="install-success" class="toast hidden">
+    <span data-i18n="installSuccess">🎉 Slunce installed successfully!</span>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

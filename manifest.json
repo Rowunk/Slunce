@@ -1,0 +1,83 @@
+{
+  "name": "Slunce - Solar Calculator",
+  "short_name": "Slunce",
+  "description": "Precision solar timing calculator for sunrise, sunset, and twilight phases",
+  "version": "2.0.0",
+  "start_url": "/?utm_source=homescreen",
+  "scope": "/",
+  "id": "/?app",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#1a1a1a",
+  "theme_color": "#ff6b35",
+  "orientation": "portrait-primary",
+  "categories": ["weather", "utilities", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Slunce solar calculator interface"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Current Location",
+      "short_name": "Location",
+      "description": "Calculate solar times for current location",
+      "url": "/?action=current&utm_source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Tomorrow",
+      "short_name": "Tomorrow",
+      "description": "View tomorrow's solar events",
+      "url": "/?action=tomorrow&utm_source=shortcut",
+      "icons": [
+        {
+          "src": "icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "localization": {
+    "cs": {
+      "name": "Slunce - Solární Kalkulátor",
+      "short_name": "Slunce",
+      "description": "Přesný kalkulátor solárních časů pro východ, západ slunce a fáze soumraku"
+    }
+  },
+  "file_handlers": [],
+  "protocol_handlers": [],
+  "related_applications": []
+}
